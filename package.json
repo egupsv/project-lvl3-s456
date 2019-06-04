@@ -1,0 +1,36 @@
+{
+  "name": "project-3-egupsv",
+  "version": "1.0.0",
+  "description": "page-loader",
+  "main": "index.js",
+  "bin": {
+    "page-loader": "dist/bin/page-loader.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "NODE_ENV=production babel src --out-dir dist --source-maps inline",
+    "prepublishOnly": "npm run build",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/egupsv/project-lvl3-s456.git"
+  },
+  "author": "Sergey Egupov",
+  "keywords": [
+    "loader"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/egupsv/project-lvl3-s456/issues"
+  },
+  "homepage": "https://github.com/egupsv/project-lvl3-s456#readme",
+  "dependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
+    "@babel/preset-env": "^7.4.5"
+  }
+}
