@@ -7,9 +7,9 @@ import loader from '..';
 program
   .version(version)
   .description('Load page.')
-  .option('-V, --version', 'output the version number')
-  .arguments('<firstConfig> <secondConfig>')
-  .action((firstConfig, secondConfig) => (
-    console.log(loader(firstConfig, secondConfig))
+  .option('-o, --output <pathToFolder>', 'folder', process.cwd())
+  .arguments('<address>')
+  .action(address => (
+    loader(program.output, address)
   ))
   .parse(process.argv);
