@@ -7,6 +7,6 @@ export default (pathToFolder = os.tmpdir, address) => {
   const addUrl = url.parse(address);
   const fileName = `${addUrl.host}${addUrl.path}`.replace(/\W/g, '-');
   const fullPath = `${pathToFolder}/${fileName}.html`;
-  axios.get(address)
+  return axios.get(address)
     .then(res => fs.writeFile(fullPath, res.data));
 };

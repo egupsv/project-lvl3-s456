@@ -1,4 +1,4 @@
-install: 
+make testinstall: 
 	npm install
 
 build:
