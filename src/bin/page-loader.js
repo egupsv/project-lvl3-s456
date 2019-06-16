@@ -11,5 +11,6 @@ program
   .arguments('<address>')
   .action(address => (
     loader(program.output, address)
+      .then(() => console.log('file has been created successfully'))
   ))
   .parse(process.argv);
