@@ -51,17 +51,19 @@ const changeHtml = (html, address) => {
 export default (pathToFolder = os.tmpdir, address) => {
   const fileName = makeFileName(address);
   const fullPath = `${pathToFolder}/${fileName}.html`;
+  let links;
   return axios.get(address)
     .then(res => fs.writeFile(fullPath, res.data))
     .then(() => fs.mkdir(`${pathToFolder}/${makeFolderName(address)}`))
     .then(() => fs.readFile(fullPath, 'utf-8'))
     .then(data => getResources(data, `${url.parse(address).protocol}//${url.parse(address).host}`))
-    .then((links) => {
-      const promises = links.map(e => [e, axios.get(e)]);
+    .then((list) => {
+      const promises = list.map(e => axios.get(e));
+      links = list;
       return Promise.all(promises);
     })
-    .then(res => res.map(e => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(e[0]).path
-      .replace(/\W/g, '-').slice(1)}`, e[1].data)))
+    .then(res => res.map((e, i) => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(links[i]).path
+      .replace(/\W/g, '-').slice(1)}`, e.data)))
     .then(() => fs.readFile(fullPath, 'utf-8'))
     .then(data => fs.writeFile(fullPath, changeHtml(data, address)));
 };
