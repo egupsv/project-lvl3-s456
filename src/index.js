@@ -3,6 +3,9 @@ import os from 'os';
 import { promises as fs } from 'fs';
 import url from 'url';
 import cheerio from 'cheerio';
+import debug from 'debug';
+
+const log = debug('page-loader');
 
 const tags = {
   link: 'href',
@@ -53,8 +56,14 @@ export default (pathToFolder = os.tmpdir, address) => {
   const fullPath = `${pathToFolder}/${fileName}.html`;
   let links;
   return axios.get(address)
-    .then(res => fs.writeFile(fullPath, res.data))
-    .then(() => fs.mkdir(`${pathToFolder}/${makeFolderName(address)}`))
+    .then((res) => {
+      log('getting html');
+      return fs.writeFile(fullPath, res.data);
+    })
+    .then(() => {
+      log('making directory');
+      return fs.mkdir(`${pathToFolder}/${makeFolderName(address)}`);
+    })
     .then(() => fs.readFile(fullPath, 'utf-8'))
     .then(data => getResources(data, `${url.parse(address).protocol}//${url.parse(address).host}`))
     .then((list) => {
@@ -62,8 +71,14 @@ export default (pathToFolder = os.tmpdir, address) => {
       links = list;
       return Promise.all(promises);
     })
-    .then(res => res.map((e, i) => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(links[i]).path
-      .replace(/\W/g, '-').slice(1)}`, e.data)))
+    .then((res) => {
+      log('creating resourses\' files');
+      return res.map((e, i) => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(links[i]).path
+        .replace(/\W/g, '-').slice(1)}`, e.data));
+    })
     .then(() => fs.readFile(fullPath, 'utf-8'))
-    .then(data => fs.writeFile(fullPath, changeHtml(data, address)));
+    .then((data) => {
+      log('changing links in html');
+      return fs.writeFile(fullPath, changeHtml(data, address));
+    });
 };
