@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import url from 'url';
 import cheerio from 'cheerio';
 import debug from 'debug';
+import Listr from 'listr';
 
 const log = debug('page-loader');
 
@@ -23,17 +24,23 @@ export const makeFolderName = (address) => {
   return `${addUrl.host}${addUrl.path}_files`.replace(/\W/g, '-');
 };
 
-const getResources = (html, address) => {
+const getResourses = (html, resourseAddress, pathToFolder, address) => {
   let links = [];
   const $ = cheerio.load(html);
   Object.keys(tags).forEach((el) => {
     $(el).each((i, e) => {
       if ($(e).attr(tags[el]) && url.parse($(e).attr(tags[el])).protocol === null) {
-        links = [...links, `${address}${$(e).attr(tags[el])}`];
+        links = [...links, `${resourseAddress}${$(e).attr(tags[el])}`];
       }
     });
   });
-  return links;
+  const tasks = new Listr(links.map(el => ({
+    title: `downloading ${el}`,
+    task: () => axios.get(el)
+      .then(res => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(el).path
+        .replace(/\W/g, '-').slice(1)}`, res.data)),
+  })));
+  return tasks.run();
 };
 
 const changeHtml = (html, address) => {
@@ -54,7 +61,6 @@ const changeHtml = (html, address) => {
 export default (pathToFolder = os.tmpdir, address) => {
   const fileName = makeFileName(address);
   const fullPath = `${pathToFolder}/${fileName}.html`;
-  let links;
   return axios.get(address)
     .then((res) => {
       log('getting html');
@@ -65,16 +71,9 @@ export default (pathToFolder = os.tmpdir, address) => {
       return fs.mkdir(`${pathToFolder}/${makeFolderName(address)}`);
     })
     .then(() => fs.readFile(fullPath, 'utf-8'))
-    .then(data => getResources(data, `${url.parse(address).protocol}//${url.parse(address).host}`))
-    .then((list) => {
-      const promises = list.map(e => axios.get(e));
-      links = list;
-      return Promise.all(promises);
-    })
-    .then((res) => {
+    .then((data) => {
       log('creating resourses\' files');
-      return res.map((e, i) => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(links[i]).path
-        .replace(/\W/g, '-').slice(1)}`, e.data));
+      return getResourses(data, `${url.parse(address).protocol}//${url.parse(address).host}`, pathToFolder, address);
     })
     .then(() => fs.readFile(fullPath, 'utf-8'))
     .then((data) => {
