@@ -12,9 +12,8 @@ const expected = '<!DOCTYPE html><html><head></head><body></body></html>';
 let tmpDir;
 
 nock('https://hexlet.io').get('/courses').reply(200, expected);
-test('test1', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
+test('base', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
   .then((folder) => {
-    console.log(folder);
     tmpDir = folder;
     return load(folder, 'https://hexlet.io/courses');
   })
@@ -27,9 +26,8 @@ nock('https://hexlet.io').get('/courses').replyWithFile(200, `${__dirname}/__fix
   .reply(200, 'img')
   .get('/script.js')
   .reply(200, 'script');
-test('test2', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
+test('load resourses', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
   .then((folder) => {
-    console.log(folder);
     tmpDir = folder;
     return load(folder, 'https://hexlet.io/courses');
   })
@@ -37,3 +35,11 @@ test('test2', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
   .then(data => expect(data).toBe('img'))
   .then(() => fs.readFile(`${tmpDir}/${makeFolderName('https://hexlet.io/courses')}/script-js`, 'utf-8'))
   .then(data => expect(data).toBe('script')));
+
+nock('https://hexlet.io').get('/err').reply(404);
+test('error 404', () => expect(load('https://hexlet.io/err', path.join(os.tmpdir(), 'project3_')))
+  .rejects.toThrow('connect ECONNREFUSED 127.0.0.1:80'));
+
+nock('https://hexlet.io').get('/wrongdir').reply(200, 'anything');
+test('wrong directory', () => expect(load('https://hexlet.io/wrongdir', 'directory'))
+  .rejects.toThrow('connect ECONNREFUSED 127.0.0.1:80'));

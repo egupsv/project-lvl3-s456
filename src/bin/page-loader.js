@@ -12,5 +12,9 @@ program
   .action(address => (
     loader(program.output, address)
       .then(() => console.log('files have been created successfully'))
+      .catch((error) => {
+        console.error(error.message);
+        process.exit(1);
+      })
   ))
   .parse(process.argv);
