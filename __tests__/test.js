@@ -12,34 +12,36 @@ const expected = '<!DOCTYPE html><html><head></head><body></body></html>';
 let tmpDir;
 
 nock('https://hexlet.io').get('/courses').reply(200, expected);
-test('base', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
-  .then((folder) => {
-    tmpDir = folder;
-    return load(folder, 'https://hexlet.io/courses');
-  })
-  .then(() => fs.readdir(tmpDir))
-  .then(list => fs.readFile(`${tmpDir}/${list[0]}`, 'utf-8'))
-  .then(data => expect(data).toBe(expected)));
+test('base', async () => {
+  const tmpDir1 = await fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
+  await load(tmpDir1, 'https://hexlet.io/courses');
+  const list = await fs.readdir(tmpDir1);
+  const data = await fs.readFile(`${tmpDir1}/${list[0]}`, 'utf-8');
+  expect(data).toBe(expected);
+});
 
 nock('https://hexlet.io').get('/courses').replyWithFile(200, `${__dirname}/__fixtures__/forTest2.html`)
   .get('/img.jpg')
   .reply(200, 'img')
   .get('/script.js')
   .reply(200, 'script');
-test('load resourses', () => fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
-  .then((folder) => {
-    tmpDir = folder;
-    return load(folder, 'https://hexlet.io/courses');
-  })
-  .then(() => fs.readFile(`${tmpDir}/${makeFolderName('https://hexlet.io/courses')}/img-jpg`, 'utf-8'))
-  .then(data => expect(data).toBe('img'))
-  .then(() => fs.readFile(`${tmpDir}/${makeFolderName('https://hexlet.io/courses')}/script-js`, 'utf-8'))
-  .then(data => expect(data).toBe('script')));
+test('load resourses', async () => {
+  const tmpDir2 = await fs.mkdtemp(path.join(os.tmpdir(), 'project3_'));
+  await load(tmpDir2, 'https://hexlet.io/courses');
+  const data1 = await fs.readFile(`${tmpDir2}/${makeFolderName('https://hexlet.io/courses')}/img-jpg`, 'utf-8');
+  const data2 = await fs.readFile(`${tmpDir2}/${makeFolderName('https://hexlet.io/courses')}/script-js`, 'utf-8');
+  expect(data1).toBe('img');
+  expect(data2).toBe('script');
+});
 
 nock('https://hexlet.io').get('/err').reply(404);
-test('error 404', () => expect(load('https://hexlet.io/err', path.join(os.tmpdir(), 'project3_')))
-  .rejects.toThrow('connect ECONNREFUSED 127.0.0.1:80'));
+test('error 404', async () => {
+  await expect(load('https://hexlet.io/err', path.join(os.tmpdir(), 'project3_')))
+    .rejects.toThrow('connect ECONNREFUSED 127.0.0.1:80');
+});
 
 nock('https://hexlet.io').get('/wrongdir').reply(200, 'anything');
-test('wrong directory', () => expect(load('https://hexlet.io/wrongdir', 'directory'))
-  .rejects.toThrow('connect ECONNREFUSED 127.0.0.1:80'));
+test('wrong directory', async () => {
+  await expect(load('https://hexlet.io/wrongdir', 'directory'))
+    .rejects.toThrow('connect ECONNREFUSED 127.0.0.1:80');
+});
