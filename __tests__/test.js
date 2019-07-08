@@ -9,11 +9,10 @@ import load, { makeFolderName } from '../src';
 axios.defaults.adapter = httpAdapter;
 
 const expected = '<!DOCTYPE html><html><head></head><body></body></html>';
-let tmpDir;
 
 nock('https://hexlet.io').get('/courses').reply(200, expected);
 test('base', async () => {
-  const tmpDir1 = await fs.mkdtemp(path.join(os.tmpdir(), 'project3_'))
+  const tmpDir1 = await fs.mkdtemp(path.join(os.tmpdir(), 'project3_'));
   await load(tmpDir1, 'https://hexlet.io/courses');
   const list = await fs.readdir(tmpDir1);
   const data = await fs.readFile(`${tmpDir1}/${list[0]}`, 'utf-8');
