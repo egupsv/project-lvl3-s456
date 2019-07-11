@@ -29,7 +29,8 @@ const getResourses = (html, resourseAddress, pathToFolder, address) => {
   const $ = cheerio.load(html);
   Object.keys(tags).forEach((el) => {
     $(el).each((i, e) => {
-      if ($(e).attr(tags[el]) && url.parse($(e).attr(tags[el])).protocol === null) {
+      const attributes = $(e).attr(tags[el]);
+      if (attributes && !url.parse(attributes).protocol) {
         links = [...links, `${resourseAddress}${$(e).attr(tags[el])}`];
       }
     });
@@ -47,7 +48,8 @@ const changeHtml = (html, address) => {
   const $ = cheerio.load(html);
   Object.keys(tags).forEach((el) => {
     $(el).each((i, e) => {
-      if ($(e).attr(tags[el]) && url.parse($(e).attr(tags[el])).protocol === null) {
+      const attributes = $(e).attr(tags[el]);
+      if (attributes && !url.parse(attributes).protocol) {
         const newFileName = $(e).attr(tags[el]).split(/\W/g).filter(elem => elem)
           .join('-');
         const source = `${makeFolderName(address)}/${newFileName}`;
@@ -63,18 +65,15 @@ export default (pathToFolder = os.tmpdir, address) => {
   const fullPath = `${pathToFolder}/${fileName}.html`;
   return axios.get(address)
     .then((res) => {
-      log('getting html');
+      log(`html from ${address} is written in ${fullPath}`);
       return fs.writeFile(fullPath, res.data);
     })
     .then(() => {
-      log('making directory');
+      log(`new directory ${pathToFolder}/${makeFolderName(address)} has been created`);
       return fs.mkdir(`${pathToFolder}/${makeFolderName(address)}`);
     })
     .then(() => fs.readFile(fullPath, 'utf-8'))
-    .then((data) => {
-      log('creating resourses\' files');
-      return getResourses(data, `${url.parse(address).protocol}//${url.parse(address).host}`, pathToFolder, address);
-    })
+    .then(data => getResourses(data, `${url.parse(address).protocol}//${url.parse(address).host}`, pathToFolder, address))
     .then(() => fs.readFile(fullPath, 'utf-8'))
     .then((data) => {
       log('changing links in html');
