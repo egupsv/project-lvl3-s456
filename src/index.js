@@ -61,6 +61,7 @@ const changeHtml = (html, address) => {
 };
 
 export default (pathToFolder = os.tmpdir, address) => {
+  let html = '';
   const fileName = makeFileName(address);
   const fullPath = `${pathToFolder}/${fileName}.html`;
   return axios.get(address)
@@ -73,10 +74,12 @@ export default (pathToFolder = os.tmpdir, address) => {
       return fs.mkdir(`${pathToFolder}/${makeFolderName(address)}`);
     })
     .then(() => fs.readFile(fullPath, 'utf-8'))
-    .then(data => getResourses(data, `${url.parse(address).protocol}//${url.parse(address).host}`, pathToFolder, address))
-    .then(() => fs.readFile(fullPath, 'utf-8'))
     .then((data) => {
+      html = data;
+      return getResourses(data, `${url.parse(address).protocol}//${url.parse(address).host}`, pathToFolder, address);
+    })
+    .then(() => {
       log('changing links in html');
-      return fs.writeFile(fullPath, changeHtml(data, address));
+      return fs.writeFile(fullPath, changeHtml(html, address));
     });
 };
