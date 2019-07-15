@@ -76,7 +76,8 @@ export default (pathToFolder = os.tmpdir, address) => {
     .then(() => fs.readFile(fullPath, 'utf-8'))
     .then((data) => {
       html = data;
-      return getResourses(data, `${url.parse(address).protocol}//${url.parse(address).host}`, pathToFolder, address);
+      const resUrl = url.parse(address);
+      return getResourses(data, `${resUrl.protocol}//${resUrl.host}`, pathToFolder, address);
     })
     .then(() => {
       log('changing links in html');
