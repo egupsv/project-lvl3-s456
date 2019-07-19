@@ -30,7 +30,8 @@ const getResourses = (html, resourseAddress, pathToFolder, address) => {
   Object.keys(tags).forEach((el) => {
     $(el).each((i, e) => {
       const attributes = $(e).attr(tags[el]);
-      if (attributes && !url.parse(attributes).protocol) {
+      const attrUrl = url.parse(attributes);
+      if (attributes && !attrUrl.protocol) {
         links = [...links, `${resourseAddress}${$(e).attr(tags[el])}`];
       }
     });
@@ -38,8 +39,11 @@ const getResourses = (html, resourseAddress, pathToFolder, address) => {
   const tasks = new Listr(links.map(el => ({
     title: `downloading ${el}`,
     task: () => axios.get(el)
-      .then(res => fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${url.parse(el).path
-        .replace(/\W/g, '-').slice(1)}`, res.data)),
+      .then((res) => {
+        const elUrl = url.parse(el);
+        return fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${elUrl.path
+          .replace(/\W/g, '-').slice(1)}`, res.data)
+      }),
   })));
   return tasks.run();
 };
@@ -49,7 +53,8 @@ const changeHtml = (html, address) => {
   Object.keys(tags).forEach((el) => {
     $(el).each((i, e) => {
       const attributes = $(e).attr(tags[el]);
-      if (attributes && !url.parse(attributes).protocol) {
+      const attrUrl = url.parse(attributes);
+      if (attributes && !attrUrl.protocol) {
         const newFileName = $(e).attr(tags[el]).split(/\W/g).filter(elem => elem)
           .join('-');
         const source = `${makeFolderName(address)}/${newFileName}`;
