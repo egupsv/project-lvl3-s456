@@ -42,7 +42,7 @@ const getResourses = (html, resourseAddress, pathToFolder, address) => {
       .then((res) => {
         const elUrl = url.parse(el);
         return fs.writeFile(`${pathToFolder}/${makeFolderName(address)}/${elUrl.path
-          .replace(/\W/g, '-').slice(1)}`, res.data)
+          .replace(/\W/g, '-').slice(1)}`, res.data);
       }),
   })));
   return tasks.run();
